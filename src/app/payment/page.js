@@ -64,6 +64,13 @@ export default function PaymentPage() {
       });
 
       if (pIntent && pIntent.status === "SUCCESS") {
+        // Direct confirmation call (offline fallback for systems without Kafka)
+        try {
+          await api.post(`/backend/checkout/${checkoutOrder.id}/confirm`);
+        } catch (confirmErr) {
+          console.warn("Offline confirm fallback returned warning (safe if Kafka is active):", confirmErr);
+        }
+
         showSuccess(`Payment completed successfully! Txn Ref: ${pIntent.gatewayTxnId}`);
         // Clear checkout session
         localStorage.removeItem("checkoutOrder");
